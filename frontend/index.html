@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MediScan AI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #f0f4f8; display: flex; justify-content: center; padding: 40px 16px; }
+    .container { background: white; border-radius: 12px; padding: 32px; width: 100%; max-width: 700px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    h1 { color: #2d6a4f; margin-bottom: 8px; }
+    p.sub { color: #666; margin-bottom: 24px; font-size: 14px; }
+    label { font-weight: 600; display: block; margin-bottom: 6px; color: #333; }
+    input[type="file"] { width: 100%; padding: 10px; border: 2px dashed #b7e4c7; border-radius: 8px; margin-bottom: 16px; cursor: pointer; }
+    textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; resize: vertical; margin-bottom: 16px; min-height: 80px; }
+    button { background: #2d6a4f; color: white; border: none; padding: 12px 28px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; }
+    button:hover { background: #1b4332; }
+    button:disabled { background: #aaa; cursor: not-allowed; }
+    .result { margin-top: 24px; padding: 20px; background: #f8fffe; border-left: 4px solid #2d6a4f; border-radius: 8px; display: none; }
+    .result h2 { color: #2d6a4f; margin-bottom: 12px; }
+    .result p { line-height: 1.7; white-space: pre-wrap; color: #333; font-size: 14px; }
+    .error { border-left-color: #c1121f; background: #fff5f5; }
+    .error h2 { color: #c1121f; }
+    .loader { text-align: center; color: #666; margin-top: 20px; display: none; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>MediScan AI</h1>
+  <p class="sub">Upload a medical or lab report PDF and get AI-powered insights.</p>
+  <label>Upload Report (PDF)</label>
+  <input type="file" id="fileInput" accept=".pdf" />
+  <label>Your Question</label>
+  <textarea id="question">Analyze this report and explain the findings in simple language.</textarea>
+  <button id="analyzeBtn">Analyze Report</button>
+  <div class="loader" id="loader">Analyzing your report, please wait...</div>
+  <div class="result" id="result">
+    <h2>Analysis</h2>
+    <p id="answer"></p>
+  </div>
+</div>
+<script>
+  document.getElementById("analyzeBtn").addEventListener("click", async function() {
+    const file     = document.getElementById("fileInput").files[0];
+    const question = document.getElementById("question").value;
+    const btn      = document.getElementById("analyzeBtn");
+    const loader   = document.getElementById("loader");
+    const result   = document.getElementById("result");
+    const answer   = document.getElementById("answer");
+    if (!file) { alert("Please upload a PDF file first."); return; }
+    btn.disabled         = true;
+    loader.style.display = "block";
+    result.style.display = "none";
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("question", question);
+    try {
+      const response = await fetch("http://127.0.0.1:8000/analyze", {
+        method: "POST",
+        body: formData
+      });
+      const data = await response.json();
+      result.classList.remove("error");
+      if (data.error) {
+        result.classList.add("error");
+        answer.textContent = data.error;
+      } else {
+        answer.textContent = data.answer;
+      }
+    } catch (err) {
+      result.classList.add("error");
+      answer.textContent = "Error: " + err.message;
+    }
+    loader.style.display = "none";
+    result.style.display = "block";
+    btn.disabled         = false;
+  });
+</script>
+</body>
+</html>
