@@ -124,3 +124,14 @@ body {
 }
 .send-btn:hover:not(:disabled) { background: #1b5e20; }
 .send-btn:disabled { background: #aaa; cursor: not-allowed; }
+.clear-btn {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #888;
+  cursor: pointer;
+  width: 100%;
+}
+.clear-btn:hover { border-color: #c1121f; color: #c1121f; }
