@@ -6,7 +6,7 @@ from extract import extract_text_from_bytes
 from rag import retrieve_context
 from gemini_chat import analyze_with_gemini
 import os
-
+from extract import extract_text_from_image_bytes
 app = FastAPI(title="MediScan AI")
 
 app.add_middleware(
@@ -27,8 +27,15 @@ async def analyze_report(
     file: UploadFile = File(...),
     question: str = Form(default="Analyze this report and explain the findings in simple language.")
 ):
-    file_bytes  = await file.read()
-    report_text = extract_text_from_bytes(file_bytes)
+    file_bytes = await file.read()
+    filename   = file.filename.lower()
+
+    if filename.endswith(".pdf"):
+        report_text = extract_text_from_bytes(file_bytes)
+    elif filename.endswith((".jpg", ".jpeg", ".png")):
+        report_text = extract_text_from_image_bytes(file_bytes, filename)
+    else:
+        return {"error": "Unsupported file type. Upload a PDF, JPG, or PNG."}
 
     if not report_text.strip():
         return {"error": "Could not extract text from the uploaded file."}
