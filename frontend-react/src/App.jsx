@@ -5,7 +5,7 @@ import Header from "./components/Header";
 import RiskScore from "./components/RiskScore";
 import Dashboard from "./components/Dashboard";
 import Compare from "./components/Compare";
-
+import DoctorDashboard from "./components/DoctorDashboard";
 export default function App() {
   const [file, setFile]           = useState(null);
   const [messages, setMessages]   = useState([]);
@@ -95,11 +95,15 @@ export default function App() {
             <button className={`tab-btn ${tab === "compare" ? "active" : ""}`} onClick={() => setTab("compare")}>
               🔄 Compare
             </button>
+            <button className={`tab-btn ${tab === "doctor" ? "active" : ""}`} onClick={() => setTab("doctor")}>
+             👨‍⚕️ Doctor Mode
+            </button>
           </div>
 
           {tab === "chat"      && <ChatWindow messages={messages} loading={loading} onSend={analyze} fileReady={!!file} />}
           {tab === "dashboard" && <Dashboard values={values} />}
           {tab === "compare"   && <Compare />}
+          {tab === "doctor" && <DoctorDashboard />}
         </div>
 
       </div>

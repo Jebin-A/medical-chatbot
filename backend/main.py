@@ -85,3 +85,40 @@ async def compare_reports(
         "report2": result2,
         "comparison": result1.get("analysis", "")
     }
+@app.post("/batch")
+async def batch_analyze(files: list[UploadFile] = File(...)):
+    results = []
+    for file in files:
+        file_bytes  = await file.read()
+        filename    = file.filename.lower()
+        report_text = extract_text(file_bytes, filename)
+
+        if not report_text.strip():
+            results.append({
+                "filename": file.filename,
+                "error":    "Could not extract text",
+                "risk_score": 0,
+                "risk_level": "Red",
+                "values":   [],
+                "analysis": "Failed to extract text from this file."
+            })
+            continue
+
+        retrieved_context = retrieve_context(query=report_text[:600], n_results=5)
+        result = analyze_with_gemini(
+            report_text,
+            retrieved_context,
+            [{"role": "user", "text": "Analyze this report. Identify the patient name if visible, list all abnormal values, and give a brief clinical summary."}]
+        )
+
+        results.append({
+            "filename":   file.filename,
+            "risk_score": result.get("risk_score", 50),
+            "risk_level": result.get("risk_level", "Yellow"),
+            "values":     result.get("values", []),
+            "analysis":   result.get("analysis", "")
+        })
+
+    # Sort by risk score ascending (Red first)
+    results.sort(key=lambda x: x["risk_score"])
+    return {"results": results}
